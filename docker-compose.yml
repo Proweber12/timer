@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mysql_db:
+    container_name: mysql_database
+    image: mysql:8.0
+    env_file:
+      - api/.db.env
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+  adminer:
+    container_name: adminer
+    image: adminer:4.8.1-standalone
+    ports:
+      - "8888:8080"
+    restart: always
+  api:
+    container_name: node-api
+    build: ./api
+    env_file:
+      - ./api/.api.env
+    ports:
+      - "5555:5000"
+    command: "npm run dev"
+    depends_on:
+      - mysql_db
+    restart: always
+    volumes:
+      - /api/node_modules
+      - ./api:/api
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    command: "npm run dev"
+    depends_on:
+      - api
+    restart: always
+    volumes:
+      - /frontend/node_modules
+      - ./frontend:/frontend
+
+volumes:
+  mysql_data:
